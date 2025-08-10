@@ -1,3 +1,6 @@
+// Telegram WebApp integration (safe if not in Telegram)
+const TG = (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+
 // Техники (кроме №12 "Успокоить ребёнка")
 const PRESETS = {
   bhastrika: { name: "Бхастрика",              cycles: 30, phases: [
@@ -74,15 +77,37 @@ const el = {
   tip: document.getElementById('tip')
 };
 
-let ctx;
+let audioCtx;
 let runState = { running:false, paused:false, cycle:0, phaseIdx:0, remainMs:0, timer:null };
 
+/* ---- Telegram theme + readiness ---- */
+(function initTelegram(){
+  if (!TG) return;
+  // Expand the web app to full height, signal readiness
+  try { TG.expand(); TG.ready(); } catch(e){}
+  // Sync theme with Telegram (light/dark)
+  const isDark = TG.colorScheme === 'dark';
+  document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  // Optional: store choice so outside Telegram we keep last theme
+  try { localStorage.setItem('breath_theme', isDark ? 'dark' : 'light'); } catch(e){}
+})();
+
+/* ---- Haptics (Telegram) ---- */
+function tgHaptic(type='light'){
+  if (!TG || !TG.HapticFeedback) return;
+  try {
+    if (type === 'heavy') TG.HapticFeedback.impactOccurred('heavy');
+    else if (type === 'medium') TG.HapticFeedback.impactOccurred('medium');
+    else TG.HapticFeedback.impactOccurred('light');
+  } catch(e){}
+}
+
+/* ---- Techniques ---- */
 function getPhases() {
   if (el.technique.value !== 'custom') {
     const p = PRESETS[el.technique.value];
     return p ? p.phases : PRESETS["478"].phases;
   }
-  // custom
   const i = parseFloat(el.c_in.value||0);
   const h1 = parseFloat(el.c_hold1.value||0);
   const o  = parseFloat(el.c_out.value||0);
@@ -118,18 +143,22 @@ function setCircle(action, dur) {
 function beep() {
   if (!el.sound.checked) return;
   try {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
     osc.frequency.value = 660;
     gain.gain.value = 0.04;
-    osc.connect(gain).connect(ctx.destination);
+    osc.connect(gain).connect(audioCtx.destination);
     osc.start();
     setTimeout(()=>{ osc.stop(); osc.disconnect(); }, 120);
   } catch(e) {}
 }
 
-function vibrate(ms=60){ if (el.vibrate.checked && navigator.vibrate) navigator.vibrate(ms); }
+function vibrate(ms=60){
+  // Prefer Telegram haptics if available; fallback to Web Vibration API
+  if (TG && TG.HapticFeedback) { tgHaptic('light'); return; }
+  if (el.vibrate.checked && navigator.vibrate) navigator.vibrate(ms);
+}
 
 function tipByAction(action){
   if (action==='inhale') return 'Вдох через нос. Живот мягко поднимается.';
@@ -152,7 +181,7 @@ function nextPhase() {
 
   const tick = () => {
     if (!runState.running || runState.paused) return;
-    runState.remainMs -= 100;                      // шаг 0.1с
+    runState.remainMs -= 100; // шаг 0.1с
     const sec = Math.max(0, Math.ceil(runState.remainMs / 1000));
     el.phaseTimer.textContent = sec + 'с';
 
@@ -193,10 +222,10 @@ function stop() {
   el.phaseName.textContent = 'Готов?';
   el.phaseTimer.textContent = '–';
   el.circle.classList.remove('hold');
-  el.circle.style.transform = 'scale(1)';  // базовый вид
+  el.circle.style.transform = 'scale(1)';
 }
 
-/* ----- Theme handling ----- */
+/* ----- Theme handling outside Telegram ----- */
 el.technique.addEventListener('change', ()=>{
   el.customBlock.classList.toggle('hidden', el.technique.value!=='custom');
 });
@@ -207,10 +236,16 @@ el.theme.addEventListener('change', ()=>{
 });
 
 window.addEventListener('DOMContentLoaded', ()=>{
-  const saved = localStorage.getItem('breath_theme');
-  if (saved) {
-    document.body.setAttribute('data-theme', saved);
-    el.theme.value = saved;
+  // restore last theme if not launched inside Telegram
+  if (!TG) {
+    const saved = localStorage.getItem('breath_theme');
+    if (saved) {
+      document.body.setAttribute('data-theme', saved);
+      el.theme.value = saved;
+    }
+  } else {
+    // inside Telegram we hide manual theme choice to avoid clashes (optional)
+    // el.theme.closest('.row')?.classList.add('hidden');
   }
 });
 

@@ -2,7 +2,7 @@ services:
   - type: web
     name: breathing
     env: python
-    region: frankfurt  # ближе к BG; можно oregon/dublin и т.д.
+    region: frankfurt
     plan: free
     buildCommand: |
       pip install -r requirements.txt
@@ -16,4 +16,17 @@ services:
       - key: ALLOWED_HOSTS
         value: "breathing.onrender.com"
       - key: CSRF_TRUSTED_ORIGINS
+        value: "https://breathing.onrender.com"
+
+  - type: worker
+    name: breathing-bot
+    env: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: WEBAPP_URL
         value: "https://breathing.onrender.com"

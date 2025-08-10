@@ -5,7 +5,9 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Дыхательный тренер</title>
-  <link rel="stylesheet" href="{% static 'trainer/style.css' %}?v=7">
+  <!-- Telegram WebApp SDK (safe to load outside Telegram, it no-ops) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="{% static 'trainer/style.css' %}?v=8">
 </head>
 <body data-theme="dark">
   <div class="container">
@@ -89,6 +91,6 @@
     </section>
   </div>
 
-  <script src="{% static 'trainer/app.js' %}?v=7"></script>
+  <script src="{% static 'trainer/app.js' %}?v=8"></script>
 </body>
 </html>
