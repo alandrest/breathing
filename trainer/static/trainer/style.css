@@ -1,0 +1,133 @@
+/* =========================
+   Breath Trainer — style.css (минимал)
+   ========================= */
+
+/* Base sizes */
+:root{
+  --circle: 220px;       /* base diameter */
+  --scale-max: 1.25;     /* inhale scale */
+}
+
+/* Default (dark) palette */
+:root {
+  --bg: #0f1115;
+  --fg: #e7e9ee;
+  --muted: #9aa3b2;
+  --accentA: #7cc4ff;
+  --accentB: #9bffcc;
+  --panel: rgba(255,255,255,0.04);
+  --panel-border: rgba(255,255,255,0.06);
+}
+
+/* Light */
+body[data-theme="light"] {
+  --bg:#f6f7fb; --fg:#101215; --muted:#5e6a78;
+  --accentA:#4f8cff; --accentB:#7bd8a4;
+  --panel:#fff; --panel-border:#e6eaf0;
+}
+
+/* Calm blue */
+body[data-theme="calm"] {
+  --bg:#0b1426; --fg:#e7f2ff; --muted:#a7bddb;
+  --accentA:#6aa8ff; --accentB:#b1e3ff;
+}
+
+/* Sunset */
+body[data-theme="sunset"] {
+  --bg:#1b0e16; --fg:#fff2ea; --muted:#e3c0b7;
+  --accentA:#ff8a5b; --accentB:#ffd36a;
+}
+
+/* Forest */
+body[data-theme="forest"] {
+  --bg:#0e1712; --fg:#e9fff3; --muted:#a9c6b7;
+  --accentA:#58c98b; --accentB:#9ef3c5;
+}
+
+/* ---------- Global ---------- */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background: radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,0.06), var(--bg) 60%);
+  color:var(--fg);
+}
+
+.container{max-width:860px;margin:0 auto;padding:24px 16px 48px}
+header{text-align:center;margin-bottom:24px}
+h1{margin:0 0 8px;font-weight:700;letter-spacing:.3px}
+.subtitle{margin:0;color:var(--muted)}
+
+/* ---------- Controls ---------- */
+.controls{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:12px;
+  padding:16px;
+  backdrop-filter:blur(4px);
+}
+.row{display:grid;gap:12px;align-items:center;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.grid3{grid-template-columns:repeat(3,1fr)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.hidden{display:none}
+
+label{color:var(--muted);font-size:14px}
+select,input[type="number"]{
+  width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(0,0,0,0.12);
+  background:rgba(255,255,255,0.06);color:var(--fg);outline:none
+}
+body[data-theme="light"] select,
+body[data-theme="light"] input[type="number"]{
+  background:#fff;border:1px solid #e6eaf0;color:#101215
+}
+
+.toggle{display:flex;gap:10px;align-items:center}
+
+button{
+  padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);
+  background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  color:var(--fg);cursor:pointer;font-weight:600
+}
+body[data-theme="light"] button{border-color:#e6eaf0;background:#fff}
+button[disabled]{opacity:.5;cursor:not-allowed}
+
+/* ---------- Stage & Circle ---------- */
+.stage{
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  margin:24px 0; padding-bottom:16px; min-height:420px;
+}
+
+/* держим место под максимум круга */
+.circle-wrap{
+  position: relative;
+  height: calc(var(--circle) * var(--scale-max));
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+/* сам круг — мягкий «3D» без переливов */
+.circle{
+  width: var(--circle); height: var(--circle); border-radius:50%;
+  background: radial-gradient(circle at 35% 35%, var(--accentA), var(--accentB));
+  box-shadow:
+    0 0 40px rgba(124,196,255,0.35),
+    inset 0 0 30px rgba(0,0,0,0.30);
+  transform: scale(1);
+  transform-origin: center center;
+  transition: transform var(--dur,1s) ease-in-out, filter .3s ease;
+}
+
+/* Freeze на задержке */
+.circle.hold{
+  transition: none !important;
+  filter: saturate(.9) brightness(.95);
+}
+
+/* подписи */
+.phase{ margin-top: 12px; text-align:center }
+#phaseName{ font-size:18px; font-weight:700 }
+#phaseTimer{ color:var(--muted) }
+.tips{ margin-top: 6px; text-align:center; color:var(--muted) }
