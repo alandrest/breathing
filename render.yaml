@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: breathing
+    env: python
+    region: frankfurt  # ближе к BG; можно oregon/dublin и т.д.
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn breathsite.wsgi:application --bind 0.0.0.0:10000 --workers 2
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "breathing.onrender.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://breathing.onrender.com"
