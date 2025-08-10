@@ -7,7 +7,7 @@ services:
     buildCommand: |
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
-    startCommand: gunicorn breathsite.wsgi:application --bind 0.0.0.0:10000 --workers 2
+    startCommand: gunicorn breathing.wsgi:application --bind 0.0.0.0:10000 --workers 2
     envVars:
       - key: SECRET_KEY
         sync: false
